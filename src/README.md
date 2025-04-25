@@ -27,6 +27,13 @@ It’s called "reentrant" because a thread can acquire the same lock multiple ti
     TimeUnit.SECONDS
     This defines the unit of time for the previous 2 numbers (1 and 1).
 
+:
+
+🔍 What are Generics in Java?
+        Generics allow you to write code that works with any data type while providing compile-time type safety.
+        
+
+
 
 
 
