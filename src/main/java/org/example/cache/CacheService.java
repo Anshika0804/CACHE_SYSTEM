@@ -4,14 +4,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CacheService {
-    private final LRUCache cache;
+    private final LRUCache<Integer, Integer> cache;
 
     public CacheService() {
-        this.cache = new LRUCache(100); // default capacity
+        this.cache = new LRUCache<>(100); // default capacity 100
     }
 
-    public int get(int key) {
-        return cache.getKey(key);
+    public Integer get(int key) {
+        Integer value = cache.getKey(key);
+        return (value != null) ? value : -1;  // Or you can throw exception if you want
     }
 
     public void put(int key, int value, long ttl) {
