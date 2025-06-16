@@ -177,4 +177,14 @@ public class LRUCache<K, V> {
         addNode(newNode);
         cache.put(key, newNode);
     }
+
+    //getSnapshot() is like taking a photograph of the current cache state in a thread-safe way.
+    public Map<K, Node<K, V>> getSnapshot() {
+        lock.lock();
+        try {
+            return new HashMap<>(cache); // defensive copy
+        } finally {
+            lock.unlock();
+        }
+    }
 }

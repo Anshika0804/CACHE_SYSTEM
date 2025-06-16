@@ -115,4 +115,50 @@ public class AOFLogger {
             System.err.println("Error while parsing AOF: " + e.getMessage());
         }
     }
+    public <K, V> void triggerLogRewrite(LRUCache<K, V> cache) {
+        lock.lock();
+        try {
+            flushBufferToDisk();  // Flush buffered commands before rotation
+
+            File tempFile = new File(FILE_PATH + ".new");
+
+            try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(tempFile)))) {
+                Map<K, LRUCache.Node<K, V>> snapshot = cache.getSnapshot();
+
+                for (Map.Entry<K, LRUCache.Node<K, V>> entry : snapshot.entrySet()) {
+                    K key = entry.getKey();
+                    LRUCache.Node<K, V> node = entry.getValue();
+
+                    if (!node.isExpired()) {
+                        long ttl = node.expiryTime == Long.MAX_VALUE
+                                ? -1
+                                : node.expiryTime - System.currentTimeMillis();
+
+                        String command = (ttl > 0)
+                                ? "PUT " + key + " " + node.value + " TTL " + (System.currentTimeMillis() + ttl)
+                                : "PUT " + key + " " + node.value;
+
+                        out.println(command);
+                    }
+                }
+            }
+
+            File oldFile = new File(FILE_PATH);
+            if (!oldFile.delete()) {
+                System.err.println("⚠ Could not delete old AOF file.");
+            }
+
+            if (!tempFile.renameTo(oldFile)) {
+                System.err.println("⚠ Could not rename new AOF file.");
+            } else {
+                System.out.println("✅ AOF log rewrite completed.");
+            }
+
+        } catch (IOException e) {
+            System.err.println("❌ Log rewrite failed: " + e.getMessage());
+        } finally {
+            lock.unlock();
+        }
+    }
+
 }
