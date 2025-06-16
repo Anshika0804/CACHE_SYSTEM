@@ -50,8 +50,8 @@ public class LRUCache<K, V> {
     public LRUCache(int capacity) {
         this.capacity = capacity;
         cache = new HashMap<>();
-        head = new Node<>(null, null, 10);
-        tail = new Node<>(null, null, 5);
+        head = new Node<>(null, null, 0);
+        tail = new Node<>(null, null, 0);
         head.next = tail;
         tail.prev = head;
 
@@ -103,11 +103,20 @@ public class LRUCache<K, V> {
         temp.prev = node;
     }
 
-    private void removeNode(Node<K, V> node) {
+     void removeNode(Node<K, V> node) {
         Node<K, V> prevNode = node.prev;
         Node<K, V> nextNode = node.next;
         prevNode.next = nextNode;
         nextNode.prev = prevNode;
+    }
+
+    void removeNodeByKey(K key) {//This is a helper function which is used for AOFLogger
+        Node<K, V> node = cache.get(key);
+        if (node != null) {
+            removeNode(node);
+            cache.remove(key);
+            AOFLogger.getInstance().logRemovedCommand(key); // ✅ Log this removal
+        }
     }
 
     public V getKey(K key) {
@@ -137,26 +146,35 @@ public class LRUCache<K, V> {
     public void put(K key, V value, long ttlInMillis) {
         lock.lock();
         try {
-            // If key exists (expired or not), remove the old entry.
-            // We don't need to check isExpired() here because either way, we remove and replace it.
-            if (cache.containsKey(key)) {
-                Node<K, V> existingNode = cache.get(key);
-                removeNode(existingNode);
-                cache.remove(key);
-            }
+            putInternal(key, value, ttlInMillis);// 👈 Actual cache logic
 
-            // Evict least recently used entry if capacity is full
-            if (cache.size() == capacity) {
-                cache.remove(tail.prev.key);
-                removeNode(tail.prev);
-            }
+            // ✅ Only log during regular use
+            AOFLogger.getInstance().logPutCommand(key, value, ttlInMillis);// 👈 Logging
 
-            // Insert new node with updated TTL
-            Node<K, V> newNode = new Node<>(key, value, ttlInMillis);
-            addNode(newNode);
-            cache.put(key, newNode);
         } finally {
             lock.unlock();
         }
+    }
+
+    //The actual logic that updates the in-memory cache without writing anything to disk.
+     void putInternal(K key, V value, long ttlInMillis) {
+        // If key exists (expired or not), remove the old entry.
+        // We don't need to check isExpired() here because either way, we remove and replace it.
+        if (cache.containsKey(key)) {
+            Node<K, V> existingNode = cache.get(key);
+            removeNode(existingNode);
+            cache.remove(key);
+        }
+
+        // Evict least recently used entry if capacity is full
+        if (cache.size() == capacity) {
+            cache.remove(tail.prev.key);
+            removeNode(tail.prev);
+        }
+
+        // Insert new node with updated TTL
+        Node<K, V> newNode = new Node<>(key, value, ttlInMillis);
+        addNode(newNode);
+        cache.put(key, newNode);
     }
 }

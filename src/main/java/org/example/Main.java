@@ -14,6 +14,7 @@ public class Main {
         System.out.println("Key 1: " + cache.getKey(1)); // Should print 100
         Thread.sleep(4000);
         System.out.println("Key 1 after 4s: " + cache.getKey(1)); // Should print -1 (expired)
+
     }
 
 }
