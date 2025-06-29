@@ -1,39 +1,111 @@
-🔐 What is ReentrantLock?
-ReentrantLock is a class in java.util.concurrent.locks package.
-It is a mutual exclusion lock — meaning only one thread can hold the lock at a time.
-It’s called "reentrant" because a thread can acquire the same lock multiple times, and it won’t deadlock itself. The thread just has to release it the same number of times it acquired it.
+# 🚀 JCacheX – Java-Based Redis-like Caching System
 
+A high-performance, persistent, and thread-safe caching system built in Java, inspired by Redis. Supports TTL-based expiry, LRU eviction, REST APIs, and AOF-style persistence.
 
-🔧 What is scheduleAtFixedRate(...)?
-    It’s a method from Java’s ScheduledExecutorService that:
-    👉 Runs a task repeatedly after a fixed time between the start of one run and the start of the next.
+---
 
-📌 Parameters explained:
-() -> { ... }
-    This is a lambda expression — basically, it’s the code block that should run repeatedly.
-    
-    In your case, this code finds and removes expired cache entries.
-    
-    1 (Initial delay)
-    This means: wait 1 second before running the task for the first time.
-    
-    It avoids running the cleaner immediately when the app starts.
-    
-    1 (Period)
-    This means: run the cleaner task every 1 second.
-    
-    More specifically: once a run starts, the next one starts 1 second later, regardless of whether the previous one is done or not (unless it’s still running — in which case it waits).
-    
-    TimeUnit.SECONDS
-    This defines the unit of time for the previous 2 numbers (1 and 1).
+## ✅ Features Summary
 
-:
+| Feature Group               | Status   |
+|----------------------------|----------|
+| Core Cache + TTL + LRU     | ✅ Done  |
+| Persistence (AOF, Snapshot)| ✅ Done  |
+| REST API + Consistency     | ✅ Done  |
+| Write Policies             | ✅ Done  |
+| Thread Affinity            | ✅ Done  |
 
-🔍 What are Generics in Java?
-        Generics allow you to write code that works with any data type while providing compile-time type safety.
-        
+---
 
+## 🧱 Project Structure
 
+```
+CACHE-SYSTEM/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── org/example/cache/
+│   │   │       ├── AOFLogger.java          # Buffered AOF persistence logger
+│   │   │       ├── CacheApplication.java   # Spring Boot main app
+│   │   │       ├── CacheController.java    # REST endpoints for cache
+│   │   │       ├── CacheService.java       # Business logic for cache operations
+│   │   │       ├── LRUCache.java           # Core cache (with TTL + LRU)
+│   │   │       └── Main.java               # (Optional) standalone runner
+│   │   └── resources/
+│   ├── test/                               # Unit tests
+├── append-only.aof                         # AOF command log for recovery
+├── pom.xml                                 # Maven build config
+├── .gitignore
+└── README.md
+```
 
+---
 
+## 🔧 How to Run
+
+### 1. Build the project
+```bash
+mvn clean install
+```
+
+### 2. Run the application
+```bash
+java -jar target/cache-system.jar
+```
+
+> Replace the `.jar` file name with the actual name generated in the `target/` directory.
+
+---
+
+## 🌐 REST API Endpoints
+
+Here are some basic endpoints (Spring Boot-based):
+
+- `POST /cache/set`  
+  Set key-value with optional TTL
+  ```json
+  {
+    "key": "user1",
+    "value": "Anshika",
+    "ttl": 60
+  }
+  ```
+
+- `GET /cache/get/{key}`  
+  Retrieve value by key
+
+- `DELETE /cache/delete/{key}`  
+  Delete a key from the cache
+
+---
+
+## 🧠 Internals
+
+- 🔁 **LRU** eviction with `LinkedHashMap`
+- ⏲️ **TTL support** with scheduled background cleaner
+- 📜 **AOF persistence** using `AOFLogger` class
+- 🧵 **Thread safety** ensured using `ReentrantLock`
+- ♻️ **Log rotation** using snapshot rewrite technique
+- 🧪 Unit testing support in `src/test`
+
+---
+
+## 📌 Future Enhancements
+
+- 📡 Distributed mode (via sharding or clustering)
+- 📊 Admin dashboard (React-based)
+- 🔐 API authentication & rate limiting
+- 📈 In-memory stats (hits, misses, evictions)
+
+---
+
+## 👩‍💻 Author
+
+**Anshika Rai**  
+[GitHub](https://github.com/Anshika0804)
+
+---
+
+## 📄 License
+
+This project is for learning/demo purposes and is not licensed for commercial use.
 
